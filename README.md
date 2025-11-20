@@ -282,5 +282,3 @@ Add to your `claude_desktop_config.json`:
 - Rate limit manager  
 - AI flows (context manager)  
 - Dashboard UI  
-}
-# whatsapp-mcp
