@@ -1,7 +1,8 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
-dotenv.config();
+// Suppress dotenv debug output by not logging to console
+dotenv.config({ quiet: true } as any);
 
 const envSchema = z.object({
     META_WHATSAPP_TOKEN: z.string().min(1),

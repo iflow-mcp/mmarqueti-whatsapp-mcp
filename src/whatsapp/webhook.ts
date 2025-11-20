@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
                         if (change.value && change.value.messages) {
                             const normalized = normalizeMessage(body);
                             if (normalized) {
-                                console.log('Received message:', JSON.stringify(normalized, null, 2));
+                                console.error('Received message:', JSON.stringify(normalized, null, 2));
                                 // Store message
                                 messageStorage.addMessage(normalized);
                                 // Broadcast to MCP clients

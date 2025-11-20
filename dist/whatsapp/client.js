@@ -1,25 +1,19 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.whatsAppClient = exports.WhatsAppClient = void 0;
-const axios_1 = __importDefault(require("axios"));
-const env_js_1 = require("../config/env.js");
-class WhatsAppClient {
+import axios from 'axios';
+import { config } from '../config/env.js';
+export class WhatsAppClient {
     client;
     constructor() {
-        this.client = axios_1.default.create({
+        this.client = axios.create({
             baseURL: 'https://graph.facebook.com/v18.0',
             headers: {
-                'Authorization': `Bearer ${env_js_1.config.META_WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${config.META_WHATSAPP_TOKEN}`,
                 'Content-Type': 'application/json',
             },
         });
     }
     async sendText(to, text) {
         try {
-            const response = await this.client.post(`/${env_js_1.config.META_WHATSAPP_PHONE_ID}/messages`, {
+            const response = await this.client.post(`/${config.META_WHATSAPP_PHONE_ID}/messages`, {
                 messaging_product: 'whatsapp',
                 recipient_type: 'individual',
                 to,
@@ -35,7 +29,7 @@ class WhatsAppClient {
     }
     async sendTemplate(to, templateName, language, components = []) {
         try {
-            const response = await this.client.post(`/${env_js_1.config.META_WHATSAPP_PHONE_ID}/messages`, {
+            const response = await this.client.post(`/${config.META_WHATSAPP_PHONE_ID}/messages`, {
                 messaging_product: 'whatsapp',
                 recipient_type: 'individual',
                 to,
@@ -68,7 +62,7 @@ class WhatsAppClient {
             const response = await this.client.get(url, {
                 responseType: 'arraybuffer',
                 headers: {
-                    'Authorization': `Bearer ${env_js_1.config.META_WHATSAPP_TOKEN}`,
+                    'Authorization': `Bearer ${config.META_WHATSAPP_TOKEN}`,
                 },
             });
             return response.data;
@@ -80,7 +74,7 @@ class WhatsAppClient {
     }
     async healthCheck() {
         try {
-            await this.client.get(`/${env_js_1.config.META_WHATSAPP_PHONE_ID}`);
+            await this.client.get(`/${config.META_WHATSAPP_PHONE_ID}`);
             return true;
         }
         catch (error) {
@@ -89,5 +83,4 @@ class WhatsAppClient {
         }
     }
 }
-exports.WhatsAppClient = WhatsAppClient;
-exports.whatsAppClient = new WhatsAppClient();
+export const whatsAppClient = new WhatsAppClient();

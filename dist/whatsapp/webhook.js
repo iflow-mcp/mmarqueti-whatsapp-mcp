@@ -1,22 +1,16 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.webhookRouter = void 0;
-const express_1 = __importDefault(require("express"));
-const env_js_1 = require("../config/env.js");
-const normalize_js_1 = require("./normalize.js");
-const server_js_1 = require("../mcp/server.js");
-const storage_js_1 = require("./storage.js");
-const router = express_1.default.Router();
+import express from 'express';
+import { config } from '../config/env.js';
+import { normalizeMessage } from './normalize.js';
+import { mcpServer } from '../mcp/server.js';
+import { messageStorage } from './storage.js';
+const router = express.Router();
 // Verification endpoint
 router.get('/', (req, res) => {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
     if (mode && token) {
-        if (mode === 'subscribe' && token === env_js_1.config.META_VERIFY_TOKEN) {
+        if (mode === 'subscribe' && token === config.META_VERIFY_TOKEN) {
             console.log('WEBHOOK_VERIFIED');
             res.status(200).send(challenge);
         }
@@ -39,13 +33,13 @@ router.post('/', async (req, res) => {
                 if (entry.changes) {
                     for (const change of entry.changes) {
                         if (change.value && change.value.messages) {
-                            const normalized = (0, normalize_js_1.normalizeMessage)(body);
+                            const normalized = normalizeMessage(body);
                             if (normalized) {
-                                console.log('Received message:', JSON.stringify(normalized, null, 2));
+                                console.error('Received message:', JSON.stringify(normalized, null, 2));
                                 // Store message
-                                storage_js_1.messageStorage.addMessage(normalized);
+                                messageStorage.addMessage(normalized);
                                 // Broadcast to MCP clients
-                                await server_js_1.mcpServer.broadcastMessage(normalized);
+                                await mcpServer.broadcastMessage(normalized);
                             }
                         }
                     }
@@ -58,4 +52,4 @@ router.post('/', async (req, res) => {
         res.sendStatus(404);
     }
 });
-exports.webhookRouter = router;
+export const webhookRouter = router;

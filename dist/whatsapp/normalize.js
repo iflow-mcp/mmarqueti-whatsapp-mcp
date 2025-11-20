@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.normalizeMessage = normalizeMessage;
-function normalizeMessage(webhookPayload) {
+export function normalizeMessage(webhookPayload) {
     try {
         const entry = webhookPayload.entry?.[0];
         const change = entry?.changes?.[0];

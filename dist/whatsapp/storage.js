@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.messageStorage = exports.MessageStorage = void 0;
-class MessageStorage {
+export class MessageStorage {
     messages = [];
     limit;
     constructor(limit = 50) {
@@ -17,5 +14,4 @@ class MessageStorage {
         return this.messages.slice(0, limit);
     }
 }
-exports.MessageStorage = MessageStorage;
-exports.messageStorage = new MessageStorage();
+export const messageStorage = new MessageStorage();

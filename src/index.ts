@@ -21,14 +21,24 @@ app.get('/health', (req, res) => {
 // Start servers
 async function main() {
     try {
-        // Start MCP Server (WebSocket)
-        await mcpServer.start(httpServer);
+        const args = process.argv.slice(2);
+        const useStdio = args.includes('--stdio');
+
+        if (useStdio) {
+            // Start MCP Server (Stdio)
+            await mcpServer.startStdio();
+        } else {
+            // Start MCP Server (WebSocket)
+            await mcpServer.start(httpServer);
+        }
 
         // Start HTTP Server
         httpServer.listen(config.PORT, () => {
-            console.log(`🚀 Server running on port ${config.PORT}`);
-            console.log(`webhook: http://localhost:${config.PORT}/webhook`);
-            console.log(`mcp: ws://localhost:${config.PORT}`);
+            console.error(`🚀 Server running on port ${config.PORT}`);
+            console.error(`webhook: http://localhost:${config.PORT}/webhook`);
+            if (!useStdio) {
+                console.error(`mcp: ws://localhost:${config.PORT}`);
+            }
         });
     } catch (error) {
         console.error('Failed to start server:', error);

@@ -1,19 +1,14 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const http_1 = require("http");
-const env_js_1 = require("./config/env.js");
-const webhook_js_1 = require("./whatsapp/webhook.js");
-const server_js_1 = require("./mcp/server.js");
-const app = (0, express_1.default)();
-const httpServer = (0, http_1.createServer)(app);
+import express from 'express';
+import { createServer } from 'http';
+import { config } from './config/env.js';
+import { webhookRouter } from './whatsapp/webhook.js';
+import { mcpServer } from './mcp/server.js';
+const app = express();
+const httpServer = createServer(app);
 // Middleware
-app.use(express_1.default.json());
+app.use(express.json());
 // Routes
-app.use('/webhook', webhook_js_1.webhookRouter);
+app.use('/webhook', webhookRouter);
 // Health check
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok' });
@@ -21,13 +16,23 @@ app.get('/health', (req, res) => {
 // Start servers
 async function main() {
     try {
-        // Start MCP Server (WebSocket)
-        await server_js_1.mcpServer.start(httpServer);
+        const args = process.argv.slice(2);
+        const useStdio = args.includes('--stdio');
+        if (useStdio) {
+            // Start MCP Server (Stdio)
+            await mcpServer.startStdio();
+        }
+        else {
+            // Start MCP Server (WebSocket)
+            await mcpServer.start(httpServer);
+        }
         // Start HTTP Server
-        httpServer.listen(env_js_1.config.PORT, () => {
-            console.log(`🚀 Server running on port ${env_js_1.config.PORT}`);
-            console.log(`webhook: http://localhost:${env_js_1.config.PORT}/webhook`);
-            console.log(`mcp: ws://localhost:${env_js_1.config.PORT}`);
+        httpServer.listen(config.PORT, () => {
+            console.error(`🚀 Server running on port ${config.PORT}`);
+            console.error(`webhook: http://localhost:${config.PORT}/webhook`);
+            if (!useStdio) {
+                console.error(`mcp: ws://localhost:${config.PORT}`);
+            }
         });
     }
     catch (error) {

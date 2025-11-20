@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebSocketServer, WebSocket } from 'ws';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { whatsAppClient } from '../whatsapp/client.js';
 import { NormalizedMessage } from '../whatsapp/normalize.js';
@@ -93,7 +94,7 @@ class WhatsAppMcpServer {
         this.wss = new WebSocketServer({ server: httpServer });
 
         this.wss.on('connection', async (ws: WebSocket) => {
-            console.log('New MCP WebSocket connection');
+            console.error('New MCP WebSocket connection');
 
             // Minimal Transport implementation for WebSocket
             const transport = {
@@ -138,6 +139,12 @@ class WhatsAppMcpServer {
             // @ts-ignore - McpServer.connect expects a Transport interface which matches our object structure
             await this.server.connect(transport);
         });
+    }
+
+    async startStdio() {
+        const transport = new StdioServerTransport();
+        await this.server.connect(transport);
+        console.error('MCP Server running on stdio');
     }
 
     async broadcastMessage(message: NormalizedMessage) {

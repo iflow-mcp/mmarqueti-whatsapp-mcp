@@ -1,15 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.mcpServer = void 0;
-const mcp_js_1 = require("@modelcontextprotocol/sdk/server/mcp.js");
-const ws_1 = require("ws");
-const zod_1 = require("zod");
-const client_js_1 = require("../whatsapp/client.js");
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { WebSocketServer } from 'ws';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
+import { whatsAppClient } from '../whatsapp/client.js';
 class WhatsAppMcpServer {
     server;
     wss = null;
     constructor() {
-        this.server = new mcp_js_1.McpServer({
+        this.server = new McpServer({
             name: 'WhatsApp MCP Server',
             version: '1.0.0',
         });
@@ -17,35 +15,35 @@ class WhatsAppMcpServer {
     }
     registerTools() {
         this.server.tool('send_text_message', {
-            to: zod_1.z.string().describe('The WhatsApp phone number to send the message to'),
-            text: zod_1.z.string().describe('The text content of the message'),
+            to: z.string().describe('The WhatsApp phone number to send the message to'),
+            text: z.string().describe('The text content of the message'),
         }, async ({ to, text }) => {
-            const result = await client_js_1.whatsAppClient.sendText(to, text);
+            const result = await whatsAppClient.sendText(to, text);
             return {
                 content: [{ type: 'text', text: JSON.stringify(result) }],
             };
         });
         this.server.tool('send_template_message', {
-            to: zod_1.z.string().describe('The WhatsApp phone number'),
-            template_name: zod_1.z.string().describe('Name of the template'),
-            language: zod_1.z.string().describe('Language code (e.g., en_US)'),
-            components: zod_1.z.array(zod_1.z.any()).optional().describe('Template components'),
+            to: z.string().describe('The WhatsApp phone number'),
+            template_name: z.string().describe('Name of the template'),
+            language: z.string().describe('Language code (e.g., en_US)'),
+            components: z.array(z.any()).optional().describe('Template components'),
         }, async ({ to, template_name, language, components }) => {
-            const result = await client_js_1.whatsAppClient.sendTemplate(to, template_name, language, components);
+            const result = await whatsAppClient.sendTemplate(to, template_name, language, components);
             return {
                 content: [{ type: 'text', text: JSON.stringify(result) }],
             };
         });
         this.server.tool('get_media', {
-            media_id: zod_1.z.string().describe('The ID of the media to retrieve'),
+            media_id: z.string().describe('The ID of the media to retrieve'),
         }, async ({ media_id }) => {
-            const url = await client_js_1.whatsAppClient.getMediaUrl(media_id);
+            const url = await whatsAppClient.getMediaUrl(media_id);
             return {
                 content: [{ type: 'text', text: url }],
             };
         });
         this.server.tool('list_recent_messages', {
-            limit: zod_1.z.number().optional().describe('Number of messages to retrieve (default 20)'),
+            limit: z.number().optional().describe('Number of messages to retrieve (default 20)'),
         }, async ({ limit = 20 }) => {
             const { messageStorage } = await import('../whatsapp/storage.js');
             const messages = messageStorage.getRecentMessages(limit);
@@ -54,7 +52,7 @@ class WhatsAppMcpServer {
             };
         });
         this.server.tool('health_check', {}, async () => {
-            const isHealthy = await client_js_1.whatsAppClient.healthCheck();
+            const isHealthy = await whatsAppClient.healthCheck();
             return {
                 content: [{ type: 'text', text: isHealthy ? 'healthy' : 'unhealthy' }],
                 isError: !isHealthy,
@@ -62,9 +60,9 @@ class WhatsAppMcpServer {
         });
     }
     async start(httpServer) {
-        this.wss = new ws_1.WebSocketServer({ server: httpServer });
+        this.wss = new WebSocketServer({ server: httpServer });
         this.wss.on('connection', async (ws) => {
-            console.log('New MCP WebSocket connection');
+            console.error('New MCP WebSocket connection');
             // Minimal Transport implementation for WebSocket
             const transport = {
                 start: async () => { },
@@ -106,6 +104,11 @@ class WhatsAppMcpServer {
             await this.server.connect(transport);
         });
     }
+    async startStdio() {
+        const transport = new StdioServerTransport();
+        await this.server.connect(transport);
+        console.error('MCP Server running on stdio');
+    }
     async broadcastMessage(message) {
         // In a real MCP implementation, we would send a resource update or a notification.
         // For v1.0, we will send a custom notification if the SDK supports it, 
@@ -140,4 +143,4 @@ class WhatsAppMcpServer {
         }
     }
 }
-exports.mcpServer = new WhatsAppMcpServer();
+export const mcpServer = new WhatsAppMcpServer();
