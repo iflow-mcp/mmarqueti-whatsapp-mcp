@@ -3,7 +3,7 @@ import request from 'supertest';
 import express from 'express';
 import { webhookRouter } from '../webhook.js';
 import { config } from '../../config/env.js';
-import { messageStorage } from '../storage.js';
+
 
 // Mock config
 vi.mock('../../config/env.js', () => ({
@@ -15,12 +15,7 @@ vi.mock('../../config/env.js', () => ({
     }
 }));
 
-// Mock mcpServer
-vi.mock('../../mcp/server.js', () => ({
-    mcpServer: {
-        broadcastMessage: vi.fn().mockResolvedValue(undefined)
-    }
-}));
+
 
 const app = express();
 app.use(express.json());
@@ -68,42 +63,5 @@ describe('Webhook Integration', () => {
         });
     });
 
-    describe('POST /webhook', () => {
-        it('should process incoming text message', async () => {
-            const payload = {
-                object: 'whatsapp_business_account',
-                entry: [{
-                    changes: [{
-                        value: {
-                            messages: [{
-                                from: '1234567890',
-                                id: 'wamid.test',
-                                timestamp: '1700000000',
-                                type: 'text',
-                                text: { body: 'Hello Integration' }
-                            }]
-                        }
-                    }]
-                }]
-            };
 
-            const response = await request(app)
-                .post('/webhook')
-                .send(payload);
-
-            expect(response.status).toBe(200);
-
-            // Verify message was stored
-            const recent = messageStorage.getRecentMessages(1);
-            expect(recent[0].text).toBe('Hello Integration');
-        });
-
-        it('should ignore non-whatsapp objects', async () => {
-            const response = await request(app)
-                .post('/webhook')
-                .send({ object: 'other' });
-
-            expect(response.status).toBe(404);
-        });
-    });
 });

@@ -11,10 +11,8 @@ Goal: Provide a minimal, clean, production-ready baseline so developers can use 
 
 - Create a lightweight MCP server (TypeScript + Node.js).
 - Expose WhatsApp Cloud API functionalities as tools.
-- Accept incoming webhooks and forward them to connected MCP clients.
-- Provide helpers for message normalization, verification, and structured logging.
+- Provide helpers for webhook verification.
 - Be deployable with a single command (Docker + local dev).
-- Serve as a foundation for future versions (templates, message types, flows, etc.)
 
 ---
 
@@ -37,13 +35,9 @@ Goal: Provide a minimal, clean, production-ready baseline so developers can use 
 /src
   /mcp
     server.ts
-    tools.ts
-    schema.ts
   /whatsapp
     client.ts
     webhook.ts
-    normalize.ts
-    storage.ts
   /config
     env.ts
   index.ts
@@ -111,31 +105,11 @@ GET /v18.0/{PHONE_ID}
 
 Expose:
 ```
-POST /webhook
 GET  /webhook (verification)
 ```
 
 Features:
 - Validate `hub.verify_token`
-- Parse WhatsApp inbound messages:
-  - text
-  - image
-  - audio
-  - document
-  - interactive (buttons, lists)
-- Normalize messages into a single consistent JSON format:
-  ```json
-  {
-    "from": "+551199999999",
-    "id": "wamid...",
-    "timestamp": 123123123,
-    "type": "text",
-    "text": "Hello",
-    "raw": { }
-  }
-  ```
-- Broadcast new messages over MCP WebSocket to any connected agent.
-- Store recent messages in memory for retrieval.
 
 ---
 
@@ -177,44 +151,12 @@ Retrieve a media file by MEDIA_ID.
 }
 ```
 
-## **4. list_recent_messages**
-Return the last N normalized inbound messages.
-
-### Params:
-```json
-{
-  "limit": 20
-}
-```
-
-## **5. health_check**
+## **4. health_check**
 Verify connectivity with WhatsApp Cloud API.
 
 ---
 
-# 8. MCP Responses (Events)
-
-Whenever a new WhatsApp message arrives via webhook, push an MCP event:
-
-### Event name:
-```
-whatsapp.incoming_message
-```
-
-### Payload:
-```json
-{
-  "from": "+551199999999",
-  "type": "text",
-  "text": "oi",
-  "timestamp": 1710002312,
-  "raw": {}
-}
-```
-
----
-
-# 9. Security
+# 8. Security
 
 - Validate Meta webhook signature (optional v1).
 - Restrict MCP tool usage to authenticated WebSocket clients.
@@ -223,7 +165,7 @@ whatsapp.incoming_message
 
 ---
 
-# 10. Documentation Requirements
+# 9. Documentation Requirements
 
 ## Setup Instructions
 
@@ -271,14 +213,4 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 (Note: For local dev without docker, point to the build output)
-
----
-
-# 11. Future v2.0 Ideas (not required now)
-
-- Interactive messages  
-- Conversation history  
-- Multi-number support  
-- Rate limit manager  
-- AI flows (context manager)  
-- Dashboard UI  
+  

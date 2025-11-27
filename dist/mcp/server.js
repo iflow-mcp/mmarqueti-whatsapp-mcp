@@ -42,15 +42,6 @@ class WhatsAppMcpServer {
                 content: [{ type: 'text', text: url }],
             };
         });
-        this.server.tool('list_recent_messages', {
-            limit: z.number().optional().describe('Number of messages to retrieve (default 20)'),
-        }, async ({ limit = 20 }) => {
-            const { messageStorage } = await import('../whatsapp/storage.js');
-            const messages = messageStorage.getRecentMessages(limit);
-            return {
-                content: [{ type: 'text', text: JSON.stringify(messages) }],
-            };
-        });
         this.server.tool('health_check', {}, async () => {
             const isHealthy = await whatsAppClient.healthCheck();
             return {
@@ -108,39 +99,6 @@ class WhatsAppMcpServer {
         const transport = new StdioServerTransport();
         await this.server.connect(transport);
         console.error('MCP Server running on stdio');
-    }
-    async broadcastMessage(message) {
-        // In a real MCP implementation, we would send a resource update or a notification.
-        // For v1.0, we will send a custom notification if the SDK supports it, 
-        // or just log it if we can't easily push to all clients without a specific subscription.
-        // The spec says "push an MCP event: whatsapp.incoming_message".
-        // We can use server.sendNotification if available, or manually send via transport if we tracked them.
-        // Since McpServer abstracts connections, we might need to access the underlying connections 
-        // or use a method to broadcast. 
-        // If the SDK doesn't support broadcast easily, we will iterate over our managed connections if we had them.
-        // But `server.connect` is 1-to-1. 
-        // To support multiple clients, we might need to create a new McpServer instance per connection 
-        // or share the tool definitions.
-        // For simplicity in v1.0 and to match the "server" concept:
-        // We will just log that we would broadcast. 
-        // Implementing full broadcast with the current SDK might require more boilerplate 
-        // (managing a list of connected servers).
-        if (this.wss) {
-            this.wss.clients.forEach((client) => {
-                if (client.readyState === 1) { // OPEN
-                    // Construct JSON-RPC notification
-                    const notification = {
-                        jsonrpc: "2.0",
-                        method: "notifications/message",
-                        params: {
-                            name: "whatsapp.incoming_message",
-                            data: message
-                        }
-                    };
-                    client.send(JSON.stringify(notification));
-                }
-            });
-        }
     }
 }
 export const mcpServer = new WhatsAppMcpServer();
