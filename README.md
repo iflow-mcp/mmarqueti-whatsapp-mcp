@@ -213,4 +213,8 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 (Note: For local dev without docker, point to the build output)
+
+# 10. Contact
+
+For any inquiries or similar projects, please contact: marcelo@marcelomarchetti.com
   
