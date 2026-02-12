@@ -1,0 +1,42 @@
+# Node modules
+node_modules
+.pnpm-store
+
+# Build files (but we need dist for npm package)
+# !dist
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# Test/cache files
+test_cache
+test_documents
+*.tgz
+
+# Project specific files
+push_info.json
+server_config.json
+language.json
+package_name
+process_result
+documents/.cache

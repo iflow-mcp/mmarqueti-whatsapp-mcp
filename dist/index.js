@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import express from 'express';
 import { createServer } from 'http';
 import { config } from './config/env.js';
@@ -8,7 +7,9 @@ import { mcpServer } from './mcp/server.js';
 async function main() {
     try {
         const args = process.argv.slice(2);
-        const useStdio = args.includes('--stdio');
+        // Check for --stdio flag or --transport stdio
+        const useStdio = args.includes('--stdio') ||
+            (args.includes('--transport') && args.includes('stdio'));
         if (useStdio) {
             // Start MCP Server (Stdio) only - no HTTP server needed
             await mcpServer.startStdio();
