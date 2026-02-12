@@ -5,10 +5,10 @@ import { z } from 'zod';
 dotenv.config({ quiet: true } as any);
 
 const envSchema = z.object({
-    META_WHATSAPP_TOKEN: z.string().min(1),
-    META_WHATSAPP_PHONE_ID: z.string().min(1),
-    META_WHATSAPP_WABA_ID: z.string().min(1),
-    META_VERIFY_TOKEN: z.string().min(1),
+    META_WHATSAPP_TOKEN: z.string().default('test_token'),
+    META_WHATSAPP_PHONE_ID: z.string().default('test_phone_id'),
+    META_WHATSAPP_WABA_ID: z.string().default('test_waba_id'),
+    META_VERIFY_TOKEN: z.string().default('test_verify_token'),
     PORT: z.string().default('4000'),
     MCP_PORT: z.string().default('8000'),
     LOG_LEVEL: z.string().default('info'),

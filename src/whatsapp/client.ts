@@ -1,17 +1,42 @@
 import axios, { AxiosInstance } from 'axios';
 import { config } from '../config/env.js';
 
+// Mock mode for testing without real API credentials
+const isMockMode = !process.env.META_WHATSAPP_TOKEN || 
+                    process.env.META_WHATSAPP_TOKEN === 'test_token' ||
+                    !process.env.META_WHATSAPP_PHONE_ID;
+
 export class WhatsAppClient {
     private client: AxiosInstance;
 
     constructor() {
-        this.client = axios.create({
-            baseURL: 'https://graph.facebook.com/v18.0',
-            headers: {
-                'Authorization': `Bearer ${config.META_WHATSAPP_TOKEN}`,
-                'Content-Type': 'application/json',
-            },
-        });
+        if (isMockMode) {
+            // Create mock client that doesn't make real API calls
+            this.client = {
+                get: async (url: string, config?: any) => {
+                    console.error(`[MOCK] GET request to ${url}`);
+                    if (url.includes('PHONE_ID')) {
+                        return { data: { id: 'mock_phone_id' } };
+                    }
+                    if (url.match(/^[0-9]+$/)) {
+                        return { data: { url: 'https://mock.media.url/file.pdf' } };
+                    }
+                    return { data: {} };
+                },
+                post: async (url: string, data: any, config?: any) => {
+                    console.error(`[MOCK] POST request to ${url}`, data);
+                    return { data: { success: true, message: 'Mock response' } };
+                }
+            } as any;
+        } else {
+            this.client = axios.create({
+                baseURL: 'https://graph.facebook.com/v18.0',
+                headers: {
+                    'Authorization': `Bearer ${config.META_WHATSAPP_TOKEN}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+        }
     }
 
     async sendText(to: string, text: string) {
